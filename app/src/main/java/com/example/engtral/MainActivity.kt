@@ -12,16 +12,19 @@ import android.widget.EditText
 import android.widget.Button
 import android.widget.TextView
 import android.os.Bundle
+import android.view.View
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
-import com.example.engtral.network.OllamaRequest
-import com.example.engtral.network.OllamaResponse
-import com.example.engtral.network.OllamaResponseChunk
+import com.example.engtral.network.MistralRequest
+import com.example.engtral.network.MistralResponse
+import com.example.engtral.network.MistralResponseChunk
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class MainActivity : AppCompatActivity() {
 
     private var chatContext: String = ""
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,24 +33,28 @@ class MainActivity : AppCompatActivity() {
         val inputField = findViewById<EditText>(R.id.inputField)
         val sendButton = findViewById<Button>(R.id.sendButton)
         val responseText = findViewById<TextView>(R.id.responseText)
+        progressBar=findViewById<ProgressBar>(R.id.progressBar)
 
         sendButton.setOnClickListener {
             val userInput = inputField.text.toString()
+            inputField.text.clear();
+            responseText.text="";
+            progressBar.visibility = View.VISIBLE
             chatWithOllama(userInput, responseText)
         }
     }
 
     private fun chatWithOllama(prompt: String, responseText: TextView) {
-        val request: OllamaRequest
+        val request: MistralRequest
         val contextList: List<Int>? = if (chatContext.isNotEmpty()) {
             Gson().fromJson(chatContext, object : TypeToken<List<Int>>() {}.type)
         } else {
             null
         }
 
-        request = OllamaRequest(model = "mistral", prompt = prompt, context = contextList)
+        request = MistralRequest(model = "mistral", prompt = prompt, context = contextList)
 
-        RetrofitClient.instance.chatWithOllama(request).enqueue(object : Callback<ResponseBody> {
+        RetrofitClient.instance.chatWithMistral(request).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     try {
@@ -65,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                             val line = reader.readLine()
                             if (line != null && line.isNotEmpty()) {
                                 try {
-                                    val chunk = gson.fromJson(line, OllamaResponseChunk::class.java)
+                                    val chunk = gson.fromJson(line, MistralResponseChunk::class.java)
                                     fullResponse += chunk.response
                                     lastLine = line;
 
@@ -78,7 +85,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         try{
-                            context = gson.fromJson(lastLine, OllamaResponse::class.java).context
+                            context = gson.fromJson(lastLine, MistralResponse::class.java).context
                         } catch (e: Exception){
                             Log.e("OllamaResponse","Error parsing context from last line: ${e.message}", e)
                         }
@@ -98,6 +105,7 @@ class MainActivity : AppCompatActivity() {
                         responseText.text = "Error: ${response.code()}"
                     }
                 }
+                progressBar.visibility = View.INVISIBLE
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {

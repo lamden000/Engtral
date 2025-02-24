@@ -9,7 +9,7 @@
         android:id="@+id/inputField"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Xin chào, bạn khỏe không?"
+        android:hint="Enter message"
         android:inputType="text"
         android:fontFamily="sans-serif"/>
 
@@ -24,6 +24,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="16dp"
+        android:text="How can i help you today?"
         android:fontFamily="sans-serif"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        />
 
 </LinearLayout>
