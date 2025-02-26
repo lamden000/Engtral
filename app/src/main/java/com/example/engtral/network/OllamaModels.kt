@@ -16,7 +16,17 @@ data class LlavaRequest(
     @SerializedName("images") val images: List<String>? = null // Image paths or base64-encoded strings
 )
 
-data class LlavaResponse(
+data class LLaVaResponseChunk(
+    val model: String,
+    val createdAt: String,
     val response: String,
-    val context: List<Int>? = null
-)
+    val done: String
+) {
+    fun isDone(): Boolean {
+        return done.toBoolean()
+    }
+
+    fun normalizedModel(): String {
+        return model.lowercase()
+    }
+}
